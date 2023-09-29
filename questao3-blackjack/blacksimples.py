@@ -1,4 +1,5 @@
 import random
+vai toma no cu seu lixo humano
 
 # Define the deck of cards
 suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
