@@ -1,4 +1,4 @@
 # blackjackTCP
 
-Bruno Castro Tomaz        - algum tia\
+Bruno Castro Tomaz        - 32150989
 Gabriel de França Marques - 42107490
