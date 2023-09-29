@@ -1,13 +1,12 @@
 import random
-vai toma no cu seu lixo humano
 
 # Define the deck of cards
-suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
-ranks = ['Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', 'Queen', 'King', 'Ace']
+suits = ['Copas', 'Ouro', 'Paus', 'Espadas']
+ranks = ['Dois', 'Tres', 'Quatro', 'Cinco', 'Seis', 'Sete', 'Oito', 'Nove', 'Dez', 'Valete', 'Dama', 'Rei', 'As']
 
 # Create a dictionary to represent card values
-card_values = {'Two': 2, 'Three': 3, 'Four': 4, 'Five': 5, 'Six': 6, 'Seven': 7, 'Eight': 8, 'Nine': 9, 'Ten': 10,
-               'Jack': 10, 'Queen': 10, 'King': 10, 'Ace': 11}
+card_values = {'Dois': 2, 'Tres': 3, 'Quatro': 4, 'Cinco': 5, 'Seis': 6, 'Sete': 7, 'Oito': 8, 'Nove': 9, 'Dez': 10,
+               'Valete': 10, 'Dama': 10, 'Rei': 10, 'As': 1}
 
 # Function to initialize and shuffle the deck
 def initialize_deck():
@@ -20,7 +19,7 @@ def calculate_hand_value(hand):
     value = sum(card_values[card['Rank']] for card in hand)
     # Adjust for Aces
     for card in hand:
-        if card['Rank'] == 'Ace' and value > 21:
+        if card['Rank'] == 'As' and value > 21:
             value -= 10
     return value
 
