@@ -46,8 +46,28 @@ def calculate_hand_value(hand):
 
 # Function to display a hand
 def display_hand(hand):
+  sum = 0
   for card in hand:
+
     print(f"{card['Rank']} de {card['Suit']}")
+    
+def sum_hand(hand):
+    total_value = 0
+    num_aces = 0  # Count the number of Aces in the hand
+
+    for card in hand:
+        rank = card['Rank']
+        total_value += card_values[rank]
+
+        if rank == 'As':
+            num_aces += 1
+
+    # Adjust for Aces if the total value exceeds 21
+    while num_aces > 0 and total_value > 21:
+        total_value -= 10  # Deduct 10 for each Ace (changes Ace's value from 11 to 1)
+        num_aces -= 1
+
+    return total_value
 
 TCP_IP = '192.168.100.103'
 TCP_PORTA = 42107
@@ -78,8 +98,6 @@ print(
 
 deck = initialize_deck()
 
-
-
 # Deal initial cards to the player and dealer
 player_hand = [deck.pop(), deck.pop()]
 dealer_hand = [deck.pop(), deck.pop()]
@@ -102,6 +120,67 @@ while True: #será usado também para conexão e recebimento de mensagens
   elif player_value > 21:
     print("Estouro! Player perdeu.")
     break
+
+##ação do jogador PLAYER
+  data = conn.recv(TAMANHO_BUFFER)
+  player_action = pickle.loads(data)
+
+
+  #action = input("\n'hit', 'stand' ou 'chat'? ").lower()
+  if player_action[0] == 'chat':
+    print(f"Mensagem do {player_name}: {player_action[1]}")
+    
+    conn.send(pickle.dumps(player_hand))
+    conn.send(pickle.dumps(dealer_hand))
+    
+  elif player_action[0] == 'hit':
+    player_hand.append(deck.pop())
+    print(f"\n{player_name} usou 'hit'!\nMão do Player:")
+    display_hand(player_hand)
+    print(f"Soma: {sum_hand(player_hand)}")
+    
+    conn.send(pickle.dumps(player_hand))
+    conn.send(pickle.dumps(dealer_hand))
+    
+  elif player_action[0] == 'stand':
+    dealer_value = calculate_hand_value(dealer_hand)
+    while dealer_value < 17:
+      dealer_hand.append(deck.pop())
+      dealer_value = calculate_hand_value(dealer_hand)
+
+    conn.send(pickle.dumps(player_hand))
+    conn.send(pickle.dumps(dealer_hand))
+    print("\nf{player_name} usou 'stand'!\nMão do Dealer:")
+    display_hand(dealer_hand)
+    print(f"Soma: {sum_hand(dealer_hand)}")
+
+    if dealer_value > 21:
+      print("Dealer estourou! Player venceu!")
+    elif dealer_value > player_value:
+      print("Dealer ganhou.")
+    elif dealer_value < player_value:
+      print("Você ganhou!")
+    else:
+      print("Empate!")
+
+    break
+  else:
+    print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
+
+
+"""
+while True: #será usado também para conexão e recebimento de mensagens
+  player_value = calculate_hand_value(player_hand)
+  if player_value == 21:
+    print("Blackjack! Player venceu!")
+    break
+  elif player_value > 21:
+    print("Estouro! Player perdeu.")
+    break
+
+    data = conn.recv(TAMANHO_BUFFER)
+    action = pickle.loads(data)
+    #print("Jogador tirou:", received)
 
   action = input("\n'hit', 'stand' ou 'chat'? ").lower()
   if action == 'chat':
@@ -132,3 +211,5 @@ while True: #será usado também para conexão e recebimento de mensagens
     break
   else:
     print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
+
+"""

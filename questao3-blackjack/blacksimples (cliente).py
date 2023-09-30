@@ -49,7 +49,23 @@ def display_hand(hand):
   for card in hand:
     print(f"{card['Rank']} de {card['Suit']}")
 
+def sum_hand(hand):
+    total_value = 0
+    num_aces = 0  # Count the number of Aces in the hand
 
+    for card in hand:
+        rank = card['Rank']
+        total_value += card_values[rank]
+
+        if rank == 'As':
+            num_aces += 1
+
+    # Adjust for Aces if the total value exceeds 21
+    while num_aces > 0 and total_value > 21:
+        total_value -= 10  # Deduct 10 for each Ace (changes Ace's value from 11 to 1)
+        num_aces -= 1
+
+    return total_value
 
 #FUNÇÃO MAIN
 
@@ -99,22 +115,54 @@ while True: #será usado também para conexão e recebimento de mensagens
     print("Estouro! Player perdeu.")
     break
 
+  
+ 
   action = input("\n'hit', 'stand' ou 'chat'? ").lower()
+  
+  
+
   if action == 'chat':
-    message_to_send = input("Sua mensagem: ")
-    conn.send(message_to_send.encode("utf-8"))
+    message = input("Sua mensagem: ")
+    envio = (action,message)
+    cliente.send(pickle.dumps(envio))
+    
+    data = cliente.recv(1024)
+    player_hand = pickle.loads(data)
+
+    data = cliente.recv(1024)
+    dealer_hand = pickle.loads(data)
+  
   elif action == 'hit':
-    player_hand.append(deck.pop())
+    envio = (action,None)
+    cliente.send(pickle.dumps(envio))
+    
+    data = cliente.recv(1024)
+    player_hand = pickle.loads(data)
+
+    data = cliente.recv(1024)
+    dealer_hand = pickle.loads(data)
+    
     print("\nMão do Player:")
     display_hand(player_hand)
+    print(f"Soma: {sum_hand(player_hand)}")
+  
   elif action == 'stand':
+    envio = (action,None)
+    cliente.send(pickle.dumps(envio))
+    
     dealer_value = calculate_hand_value(dealer_hand)
-    while dealer_value < 17:
-      dealer_hand.append(deck.pop())
-      dealer_value = calculate_hand_value(dealer_hand)
+  
+    
+    data = cliente.recv(1024)
+    player_hand = pickle.loads(data)
+
+    data = cliente.recv(1024)
+    dealer_hand = pickle.loads(data)
+
 
     print("\nMão do Dealer:")
     display_hand(dealer_hand)
+    print(f"Soma: {sum_hand(dealer_hand)}")
 
     if dealer_value > 21:
       print("Dealer estourou! Player venceu!")
