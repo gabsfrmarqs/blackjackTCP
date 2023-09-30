@@ -102,23 +102,43 @@ deck = initialize_deck()
 player_hand = [deck.pop(), deck.pop()]
 dealer_hand = [deck.pop(), deck.pop()]
 
-conn.send(pickle.dumps(player_hand))
-conn.send(pickle.dumps(dealer_hand))
+data_to_send = {
+    'player_hand': player_hand,
+    'dealer_hand': dealer_hand
+}
 
-print("Mão do jogador:")
-display_hand(player_hand)
+serialized_data = pickle.dumps(data_to_send)
+
+conn.send(serialized_data)
+
+#print("Mão do jogador:")
+#display_hand(player_hand)
 
 print("\nMão do dealer:")
-print(
-    f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
+display_hand(dealer_hand)
 
 while True: #será usado também para conexão e recebimento de mensagens
   player_value = calculate_hand_value(player_hand)
   if player_value == 21:
-    print("Blackjack! Player venceu!")
+  
+    print("\nMão do Player:")
+    display_hand(player_hand)
+    print(f"Soma {player_name}: {sum_hand(player_hand)}")
+    
+    print("\nMão do Dealer:")
+    display_hand(dealer_hand)
+    print(f"Soma dealer: {sum_hand(dealer_hand)}")
+    print(f"Blackjack! {player_name} venceu!")
     break
   elif player_value > 21:
-    print("Estouro! Player perdeu.")
+    print("\nMão do Player:")
+    display_hand(player_hand)
+    print(f"Soma {player_name}: {sum_hand(player_hand)}")
+    
+    print("\nMão do Dealer:")
+    display_hand(dealer_hand)
+    print(f"Soma dealer: {sum_hand(dealer_hand)}")
+    print(f"Estouro! {player_name} perdeu.")
     break
 
 ##ação do jogador PLAYER
@@ -129,39 +149,91 @@ while True: #será usado também para conexão e recebimento de mensagens
   #action = input("\n'hit', 'stand' ou 'chat'? ").lower()
   if player_action[0] == 'chat':
     print(f"Mensagem do {player_name}: {player_action[1]}")
-    
-    conn.send(pickle.dumps(player_hand))
-    conn.send(pickle.dumps(dealer_hand))
+    data_to_send = {
+    'player_hand': player_hand,
+    'dealer_hand': dealer_hand
+}
+
+    serialized_data = pickle.dumps(data_to_send)
+
+    conn.send(serialized_data)
     
   elif player_action[0] == 'hit':
-    player_hand.append(deck.pop())
-    print(f"\n{player_name} usou 'hit'!\nMão do Player:")
-    display_hand(player_hand)
-    print(f"Soma: {sum_hand(player_hand)}")
-    
-    conn.send(pickle.dumps(player_hand))
-    conn.send(pickle.dumps(dealer_hand))
+    carta_poppada = deck.pop()
+    player_hand.append(carta_poppada)
+    print(f"\n{player_name} usou 'hit'!")
+    print(f"+{carta_poppada['Rank']} de {carta_poppada['Suit']}")
+    #print("Mão do Player:") 
+    #display_hand(player_hand)
+    #print(f"Soma: {sum_hand(player_hand)}")
+    data_to_send = {
+    'player_hand': player_hand,
+    'dealer_hand': dealer_hand
+}
+
+    serialized_data = pickle.dumps(data_to_send)
+
+    conn.send(serialized_data)
     
   elif player_action[0] == 'stand':
+    dealer_playing = True
+    print(f"\n{player_name} usou 'stand'!")
+    while dealer_playing:
+      dealer_action = input("\n'hit', 'stand' ou 'chat'? ").lower()
+      if dealer_action == "chat":
+        message = input("Sua mensagem: ")
+        envio = (dealer_action,message)
+        conn.send(pickle.dumps(envio))
+        
+      elif dealer_action == "hit":
+        
+        carta_poppada_dealer = deck.pop()
+        dealer_hand.append(carta_poppada_dealer)
+        print(f"\nDealer usou 'hit'!\nMão do Dealer:")
+        display_hand(dealer_hand)
+        print(f"Soma: {sum_hand(dealer_hand)}")
+        envio = (dealer_action,carta_poppada_dealer)
+        #print(f"DEBUG: {carta_poppada}")
+        conn.send(pickle.dumps(envio))
+        
+      elif dealer_action == "stand":
+        envio = (dealer_action,None)
+        conn.send(pickle.dumps(envio))
+        dealer_playing = False
+      
     dealer_value = calculate_hand_value(dealer_hand)
-    while dealer_value < 17:
-      dealer_hand.append(deck.pop())
-      dealer_value = calculate_hand_value(dealer_hand)
 
-    conn.send(pickle.dumps(player_hand))
-    conn.send(pickle.dumps(dealer_hand))
-    print("\nf{player_name} usou 'stand'!\nMão do Dealer:")
+
+    data_to_send = {
+    'player_hand': player_hand,
+    'dealer_hand': dealer_hand
+}
+
+    serialized_data = pickle.dumps(data_to_send)
+
+    conn.send(serialized_data)
+    
+    """
+    print(f"\n{player_name} usou 'stand'!\nMão do Dealer:")
     display_hand(dealer_hand)
     print(f"Soma: {sum_hand(dealer_hand)}")
-
+    """
+    
+    #display_hand(dealer_hand)
+    
     if dealer_value > 21:
-      print("Dealer estourou! Player venceu!")
+            print(f"\nVocê estourou! {player_name} venceu!")
     elif dealer_value > player_value:
-      print("Dealer ganhou.")
+        
+        print(f"\nDealer ganhou! {player_name} perdeu.")
     elif dealer_value < player_value:
-      print("Você ganhou!")
+        print(f"\n{player_name} ganhou!\nVocê perdeu.")
     else:
-      print("Empate!")
+        print("Empate!")
+    dealer_playing = False
+    
+    
+    
 
     break
   else:

@@ -93,86 +93,119 @@ cliente.send(pickle.dumps(player_name))
 deck = initialize_deck()
 
 # Deal initial cards to the player and dealer
-data = cliente.recv(1024)
-player_hand = pickle.loads(data)
+# Receive the serialized data
+data_received = cliente.recv(TAMANHO_BUFFER)
 
-data = cliente.recv(1024)
-dealer_hand = pickle.loads(data)
+# Unpickle the entire data
+received_data = pickle.loads(data_received)
+print(received_data)
+
+# Access player_hand and dealer_hand
+player_hand = received_data['player_hand']
+dealer_hand = received_data['dealer_hand']
+
+
+
 
 print("Mão do jogador:")
 display_hand(player_hand)
 
-print("\nMão do dealer:")
-print(
-    f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
+#print("\nMão do dealer:")
+#print(f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
 
 while True: #será usado também para conexão e recebimento de mensagens
   player_value = calculate_hand_value(player_hand)
+  
   if player_value == 21:
-    print("Blackjack! Player venceu!")
+  
+    print("\nMão do Player:")
+    display_hand(player_hand)
+    print(f"Soma {player_name}: {sum_hand(player_hand)}")
+    
+    print("\nMão do Dealer:")
+    display_hand(dealer_hand)
+    print(f"Soma dealer: {sum_hand(dealer_hand)}")
+    print(f"Blackjack! {player_name} venceu!")
     break
   elif player_value > 21:
-    print("Estouro! Player perdeu.")
+    print("\nMão do Player:")
+    display_hand(player_hand)
+    print(f"Soma {player_name}: {sum_hand(player_hand)}")
+    
+    print("\nMão do Dealer:")
+    display_hand(dealer_hand)
+    print(f"Soma dealer: {sum_hand(dealer_hand)}")
+    print(f"Estouro! {player_name} perdeu.")
     break
 
-  
  
   action = input("\n'hit', 'stand' ou 'chat'? ").lower()
-  
-  
-
   if action == 'chat':
     message = input("Sua mensagem: ")
     envio = (action,message)
     cliente.send(pickle.dumps(envio))
     
-    data = cliente.recv(1024)
-    player_hand = pickle.loads(data)
+    data = cliente.recv(TAMANHO_BUFFER)
+    received_data = pickle.loads(data)
 
-    data = cliente.recv(1024)
-    dealer_hand = pickle.loads(data)
+    #Access player_hand and dealer_hand
+    player_hand = received_data['player_hand']
+    dealer_hand = received_data['dealer_hand']
   
   elif action == 'hit':
     envio = (action,None)
     cliente.send(pickle.dumps(envio))
     
-    data = cliente.recv(1024)
-    player_hand = pickle.loads(data)
+    
+    data = cliente.recv(TAMANHO_BUFFER)
+    received_data = pickle.loads(data)
 
-    data = cliente.recv(1024)
-    dealer_hand = pickle.loads(data)
+    #Access player_hand and dealer_hand
+    player_hand = received_data['player_hand']
+    dealer_hand = received_data['dealer_hand']
+    
     
     print("\nMão do Player:")
     display_hand(player_hand)
     print(f"Soma: {sum_hand(player_hand)}")
+    
   
   elif action == 'stand':
     envio = (action,None)
     cliente.send(pickle.dumps(envio))
+    dealer_playing = True
+    while dealer_playing == True:
+        data = cliente.recv(TAMANHO_BUFFER)
+        dealer_action = pickle.loads(data)
+        if dealer_action[0] == "chat":
+            print(f"Mensagem do dealer: {dealer_action[1]}")
+        elif dealer_action[0] == "hit":
+            print(f"Dealer usou 'hit'")
+            print(f"+{dealer_action[1]['Rank']} de {dealer_action[1]['Suit']}")
+        elif dealer_action[0] == "stand":
+            print(f"Dealer usou 'stand'!")
+            dealer_playing = False
     
-    dealer_value = calculate_hand_value(dealer_hand)
-  
-    
-    data = cliente.recv(1024)
-    player_hand = pickle.loads(data)
+    data = cliente.recv(TAMANHO_BUFFER)
+    received_data = pickle.loads(data)
 
-    data = cliente.recv(1024)
-    dealer_hand = pickle.loads(data)
-
-
-    print("\nMão do Dealer:")
-    display_hand(dealer_hand)
-    print(f"Soma: {sum_hand(dealer_hand)}")
-
-    if dealer_value > 21:
-      print("Dealer estourou! Player venceu!")
-    elif dealer_value > player_value:
-      print("Dealer ganhou.")
-    elif dealer_value < player_value:
-      print("Você ganhou!")
-    else:
-      print("Empate!")
-
-    break
+    #Access player_hand and dealer_hand
+    player_hand = received_data['player_hand']
+    dealer_hand = received_data['dealer_hand']
+            
   else:
     print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
+
+  dealer_value = calculate_hand_value(dealer_hand)
+  
+
+  if dealer_value > 21:
+    print("Dealer estourou! Player venceu!")
+  elif dealer_value > sum_hand(player_hand):
+    print("Dealer ganhou.")
+  elif dealer_value < sum_hand(player_hand):
+    print("Você ganhou!")
+  else:
+    print("Empate!")
+
+  break
