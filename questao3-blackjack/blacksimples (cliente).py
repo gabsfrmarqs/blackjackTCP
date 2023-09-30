@@ -77,8 +77,11 @@ cliente.send(pickle.dumps(player_name))
 deck = initialize_deck()
 
 # Deal initial cards to the player and dealer
-player_hand = [deck.pop(), deck.pop()]
-dealer_hand = [deck.pop(), deck.pop()]
+data = cliente.recv(1024)
+player_hand = pickle.loads(data)
+
+data = cliente.recv(1024)
+dealer_hand = pickle.loads(data)
 
 print("Mão do jogador:")
 display_hand(player_hand)

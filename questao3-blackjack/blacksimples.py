@@ -78,9 +78,14 @@ print(
 
 deck = initialize_deck()
 
+
+
 # Deal initial cards to the player and dealer
 player_hand = [deck.pop(), deck.pop()]
 dealer_hand = [deck.pop(), deck.pop()]
+
+conn.send(pickle.dumps(player_hand))
+conn.send(pickle.dumps(dealer_hand))
 
 print("Mão do jogador:")
 display_hand(player_hand)
