@@ -1,5 +1,4 @@
 import random
-import socket
 
 # Define the deck of cards
 suits = ['Copas', 'Ouro', 'Paus', 'Espadas']
@@ -61,10 +60,9 @@ def play_blackjack():
   display_hand(player_hand)
 
   print("\nMão do dealer:")
-  print(
-      f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
+  print(f"Face up card: {dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
 
-  while True: #será usado também para conexão e recebimento de mensagens
+  while True:
     player_value = calculate_hand_value(player_hand)
     if player_value == 21:
       print("Blackjack! Player venceu!")
@@ -73,10 +71,9 @@ def play_blackjack():
       print("Estouro! Player perdeu.")
       break
 
-    action = input("\n'hit', 'stand' ou 'chat'? ").lower()
+    action = input("\n'hit' ou 'stand'? ").lower()
     if action == 'chat':
-      message_to_send = input("Sua mensagem: ")
-      conn.send(message_to_send.encode("utf-8"))
+      print('não implementado puta')
     elif action == 'hit':
       player_hand.append(deck.pop())
       print("\nMão do Player:")
@@ -103,22 +100,6 @@ def play_blackjack():
     else:
       print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
 
-
-"""
-TCP_IP = '192.168.100.135'
-TCP_PORTA = 42107
-TAMANHO_BUFFER = 1024
-
-servidor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-servidor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-servidor.bind((TCP_IP, TCP_PORTA))
-servidor.listen(1)
-
-print(f"Servidor disponível na porta {TCP_PORTA} e escutando.....")
-
-conn, addr = servidor.accept()
-print('Endereço conectado:', addr)
-"""
 
 print(
     "Bem vindo ao Blackjack (21) via TCP. O Player agirá como cliente, enquanto o Dealer será o servidor."
