@@ -1,5 +1,6 @@
 import random
 import socket
+import pickle
 
 # Define the deck of cards
 suits = ['Copas', 'Ouro', 'Paus', 'Espadas']
@@ -48,64 +49,7 @@ def display_hand(hand):
   for card in hand:
     print(f"{card['Rank']} de {card['Suit']}")
 
-
-# Function to play a round of Blackjack
-def play_blackjack():
-  deck = initialize_deck()
-
-  # Deal initial cards to the player and dealer
-  player_hand = [deck.pop(), deck.pop()]
-  dealer_hand = [deck.pop(), deck.pop()]
-
-  print("Mão do jogador:")
-  display_hand(player_hand)
-
-  print("\nMão do dealer:")
-  print(
-      f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
-
-  while True: #será usado também para conexão e recebimento de mensagens
-    player_value = calculate_hand_value(player_hand)
-    if player_value == 21:
-      print("Blackjack! Player venceu!")
-      break
-    elif player_value > 21:
-      print("Estouro! Player perdeu.")
-      break
-
-    action = input("\n'hit', 'stand' ou 'chat'? ").lower()
-    if action == 'chat':
-      message_to_send = input("Sua mensagem: ")
-      conn.send(message_to_send.encode("utf-8"))
-    elif action == 'hit':
-      player_hand.append(deck.pop())
-      print("\nMão do Player:")
-      display_hand(player_hand)
-    elif action == 'stand':
-      dealer_value = calculate_hand_value(dealer_hand)
-      while dealer_value < 17:
-        dealer_hand.append(deck.pop())
-        dealer_value = calculate_hand_value(dealer_hand)
-
-      print("\nMão do Dealer:")
-      display_hand(dealer_hand)
-
-      if dealer_value > 21:
-        print("Dealer estourou! Player venceu!")
-      elif dealer_value > player_value:
-        print("Dealer ganhou.")
-      elif dealer_value < player_value:
-        print("Você ganhou!")
-      else:
-        print("Empate!")
-
-      break
-    else:
-      print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
-
-
-"""
-TCP_IP = '192.168.100.135'
+TCP_IP = '192.168.100.103'
 TCP_PORTA = 42107
 TAMANHO_BUFFER = 1024
 
@@ -118,16 +62,68 @@ print(f"Servidor disponível na porta {TCP_PORTA} e escutando.....")
 
 conn, addr = servidor.accept()
 print('Endereço conectado:', addr)
-"""
+
+data = conn.recv(TAMANHO_BUFFER)
+received = pickle.loads(data)
+print("Nome do jogador:", received)
+
+player_name = received
 
 print(
-    "Bem vindo ao Blackjack (21) via TCP. O Player agirá como cliente, enquanto o Dealer será o servidor."
-)
-print(
-    "O Dealer terá sempre uma carta escondida do jogador. Todas as cartas do jogador estarão visíveis."
+    "Bem vindo ao Blackjack (21) via TCP. Você é o servidor, agindo como dealer."
 )
 print(
     "Quando um comando for solicitado, digite 'hit' para pedir mais uma carta ou 'stand' para finalizar sua jogada."
 )
 
-play_blackjack()
+deck = initialize_deck()
+
+# Deal initial cards to the player and dealer
+player_hand = [deck.pop(), deck.pop()]
+dealer_hand = [deck.pop(), deck.pop()]
+
+print("Mão do jogador:")
+display_hand(player_hand)
+
+print("\nMão do dealer:")
+print(
+    f"Face up card: \n{dealer_hand[0]['Rank']} de {dealer_hand[0]['Suit']}")
+
+while True: #será usado também para conexão e recebimento de mensagens
+  player_value = calculate_hand_value(player_hand)
+  if player_value == 21:
+    print("Blackjack! Player venceu!")
+    break
+  elif player_value > 21:
+    print("Estouro! Player perdeu.")
+    break
+
+  action = input("\n'hit', 'stand' ou 'chat'? ").lower()
+  if action == 'chat':
+    message_to_send = input("Sua mensagem: ")
+    conn.send(message_to_send.encode("utf-8"))
+  elif action == 'hit':
+    player_hand.append(deck.pop())
+    print("\nMão do Player:")
+    display_hand(player_hand)
+  elif action == 'stand':
+    dealer_value = calculate_hand_value(dealer_hand)
+    while dealer_value < 17:
+      dealer_hand.append(deck.pop())
+      dealer_value = calculate_hand_value(dealer_hand)
+
+    print("\nMão do Dealer:")
+    display_hand(dealer_hand)
+
+    if dealer_value > 21:
+      print("Dealer estourou! Player venceu!")
+    elif dealer_value > player_value:
+      print("Dealer ganhou.")
+    elif dealer_value < player_value:
+      print("Você ganhou!")
+    else:
+      print("Empate!")
+
+    break
+  else:
+    print("Inválido. Digite 'hit', 'stand' ou 'chat'.")
