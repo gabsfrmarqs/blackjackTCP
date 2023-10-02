@@ -186,7 +186,7 @@ while True: #será usado também para conexão e recebimento de mensagens
     #   print("Mão do Player:") 
     #display_hand(player_hand)
     #print(f"Soma: {sum_hand(player_hand)}")
-    print("hit do server")
+    #print("hit do server")
     
     
   elif player_action[0] == 'stand':
@@ -213,11 +213,8 @@ while True: #será usado também para conexão e recebimento de mensagens
       elif dealer_action == "stand":
         envio = (dealer_action,None)
         conn.send(pickle.dumps(envio))
-        dealer_playing = False
-    continue
-    
-    
-    break
+        break
+  
       
   dealer_value = calculate_hand_value(dealer_hand)
 
@@ -228,9 +225,9 @@ while True: #será usado também para conexão e recebimento de mensagens
   }
   
   serialized_data = pickle.dumps(data_to_send)
-  print("pós serie")
+  #print("pós serie")
   conn.send(serialized_data)
-  print("enviou")
+  #print("enviou")
   conn.send(serialized_data)
     
   """

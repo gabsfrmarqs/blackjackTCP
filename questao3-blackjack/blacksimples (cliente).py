@@ -189,11 +189,11 @@ while True: #será usado também para conexão e recebimento de mensagens
     cliente.send(pickle.dumps(envio))
     
     
-  print("aqui chega")
+  #print("aqui chega")
   data = cliente.recv(TAMANHO_BUFFER)
-  print("data")
+  #print("data")
   received_data = pickle.loads(data)
-  print("aqui não")
+  #print("aqui não")
     
 
     #Access player_hand and dealer_hand
